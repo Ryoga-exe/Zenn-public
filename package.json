@@ -1,12 +1,16 @@
 {
   "name": "zenn-public",
+  "private": true,
+  "description": "https://zenn.dev/ryoga_exe",
   "version": "1.0.0",
+  "author": "Ryoga-exe",
+  "keywords": [
+    "zenn"
+  ],
   "repository": {
     "type": "git",
     "url": "github.com/Ryoga-exe/Zenn-public"
   },
-  "author": "Ryoga-exe",
-  "private": true,
   "dependencies": {
     "zenn-cli": "^0.1.101"
   },
