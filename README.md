@@ -5,8 +5,25 @@ Repository for [my Zenn contents](https://zenn.dev/ryoga_exe).
 ## Setup
 
 Install dependencies
-```bash
+```
 yarn install --frozen-lockfile
+```
+
+## Local development
+
+
+Create a new article/book
+```
+# Create a new article
+yarn new:article
+
+# Create a new book
+yarn new:book
+```
+
+Preview
+```
+yarn preview
 ```
 
 ## Guide
