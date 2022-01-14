@@ -1,5 +1,12 @@
 # Zenn Contents
 
+![GitHub](https://img.shields.io/github/license/Ryoga-exe/Zenn-public)
+![](https://zenn.badge.nikaera.com/s/ryoga_exe/likes?style=plastic)
+![](https://zenn.badge.nikaera.com/s/ryoga_exe/articles?style=plastic)
+![](https://zenn.badge.nikaera.com/s/ryoga_exe/followers?style=plastic)
+![](https://zenn.badge.nikaera.com/s/ryoga_exe/scraps?style=plastic)
+
+
 Repository for [my Zenn contents](https://zenn.dev/ryoga_exe).
 
 ## Setup
