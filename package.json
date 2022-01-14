@@ -1,5 +1,19 @@
 {
+  "name": "zenn-public",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "github.com/Ryoga-exe/Zenn-public"
+  },
+  "author": "Ryoga-exe",
+  "private": true,
   "dependencies": {
     "zenn-cli": "^0.1.101"
+  },
+  "scripts": {
+    "preview": "npx zenn preview --port 8000 --open",
+    "new": "npx zenn new:article",
+    "new:article": "npx zenn new:article",
+    "new:book": "npx zenn new:book"
   }
 }
