@@ -1,9 +1,9 @@
 ---
-title: "GitHub Actions で Siv3D 製アプリをビルドする"
+title: "Siv3D 製アプリをビルドする GitHub Actions を書いた"
 emoji: "📦"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["githubactions", "siv3d"]
-published: false
+published: true
 ---
 
 この記事は [Siv3D Advent Calendar 2023](https://qiita.com/advent-calendar/2023/siv3d) 19 日目の記事です。
