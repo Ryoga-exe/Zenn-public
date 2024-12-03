@@ -13,7 +13,7 @@
     "url": "github.com/Ryoga-exe/Zenn-public"
   },
   "dependencies": {
-    "zenn-cli": "latest"
+    "zenn-cli": "^0.1.158"
   },
   "scripts": {
     "preview": "npx zenn preview --port 8000 --open",
