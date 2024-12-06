@@ -107,7 +107,17 @@ if (query === "") {
 スライダーを実装するにあたり、様々なライブラリを比較しました。Splide は他のライブラリと比べ、小さく軽いことや、柔軟性があること、アクセシビリティに優れていることから採用しました。
 
 ![団体個別ページのスクリーンショット](/images/tsukuba-shinkan-web/org-screenshot.png)
-_団体個別ページのスクリーンショット - https://shinkan2024.pages.dev/orgs/102 [^2]より引用_
+_団体個別ページのスクリーンショット - https://shinkan-web.zdk.tsukuba.ac.jp/orgs/102 [^2]より引用_
+
+また、この団体個別ページについては団体ごとに OG 画像を生成するようにしました。
+[Astro の動的ルーティング](https://docs.astro.build/ja/guides/routing/#%E5%8B%95%E7%9A%84%E3%83%AB%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0) の機能の `getStaticPaths()` 関数を用いてビルド時に `og/{団体ID}.png` という形式で [Satori](https://github.com/vercel/satori) を用いて生成しています。
+今回初めて Satori を使いましたが、HTML で画像を生成できるのはかなり新鮮で使いやすかったです。
+ただ、`background-image` に画像を指定する際に少々苦戦しました。`ArrayBuffer` として画像をインポートし、Base64 形式で埋め込むことで解決しましたがもっと良い方法はあるのでしょうか……
+
+![団体個別で生成される OG 画像が並んでいる](/images/tsukuba-shinkan-web/org-og-images.png)
+_生成される OG 画像たち_
+
+今回は団体名のみ入れる簡単なものでしたが、サムネイル画像を入れるなどしても良かったのかなと思っています。
 
 [^2]: ちなみに筆者は[学園祭実行委員会](https://sohosai.com)に所属しています
 
@@ -123,12 +133,152 @@ _クエリパラメータの構造_
 
 ### お気に入り機能
 
-![ハートのアニメーション](/images/tsukuba-shinkan-web/heart.gif)
+お気に入りした団体はブラウザの[ローカルストレージ](https://developer.mozilla.org/ja/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API)に保存されます。
+保存される値ですが、クエリパラメータに乗せてバックエンドに送りフィルタするために使用されるため少しでも短くなるように設計しました。
+
+基本的な実装の方針として、ビットが立っているかどうかを状態として持つようにしました。例えば `10001` の場合は ID が 0 と4 の団体がお気に入り登録されているといった感じです。
+これを全ての団体に対して行えば `1000100100...` のようなビット列が得られるので、これを 5 桁ごとに区切り、32 進数のような形で保存しています。
+具体的なコードは以下の通りです。
+
+```ts
+// お気に入りされている団体を localStorage から取得し、ID の配列として得る
+let favoriteGroups = ((): string[] => {
+  if (typeof localStorage !== "undefined") {
+    const val = localStorage.getItem("favoriteGroups");
+    if (val) {
+      let ret = [];
+      for (let i = 0; i < val.length; i++) {
+        ret.push(
+          ...[
+            ...("0" <= val[i] && val[i] <= "9"
+              ? parseInt(val[i])
+              : val.charCodeAt(i) - 97 + 10
+            )
+              .toString(2)
+              .padStart(5, "0"),
+          ].reverse(),
+        );
+      }
+      return ret;
+    }
+  }
+  return [];
+})();
+
+// localStorage に保存する形式に変換する
+function encodeFavoriteGroups(val: string[]): string {
+  let ret = "";
+  for (let i = 0; i < val.length; i += 5) {
+    const num = parseInt(
+      val
+        .slice(i, i + 5)
+        .reverse()
+        .join(""),
+      2,
+    );
+    if (num < 10) {
+      ret += String(num);
+    } else {
+      ret += String.fromCharCode(97 + num - 10);
+    }
+  }
+  return ret;
+}
+```
+
+また、ハートを押した際のアニメーションも工夫したポイントです。
+X (旧 Twitter) のいいねボタンの挙動を参考に、押して気持ちいいアニメーションを目指しました。
+
+![](/images/tsukuba-shinkan-web/heart.gif)
+_ハートのアニメーション_
+
+動きは CSS アニメーションで実現しています。
+
+```html
+<button
+  class="heart"
+  aria-label="お気に入りに登録する"
+  aria-pressed="false"
+  data-group-id="{id}"
+>
+  <Icon class="like-line" name="ri:heart-3-line" aria-hidden />
+  <Icon class="like-fill" name="ri:heart-3-fill" aria-hidden />
+  <div class="effects" aria-hidden>
+    <!-- ホバー時の背景の円 -->
+    <span class="bg-circle"></span>
+    <!-- クリックした際の円が広がるような演出 -->
+    <span class="explosion"></span>
+  </div>
+</button>
+
+<style>
+  /* 一部省略 */
+  .heart[aria-pressed="true"] .like-fill {
+    display: block;
+    animation: likeAnimation 1000ms forwards;
+  }
+  .heart[aria-pressed="true"] .explosion {
+    animation: explosionAnimation 1000ms forwards;
+  }
+
+  @keyframes explosionAnimation {
+    0% {
+      width: 0.0001px;
+      border: solid 0 #dd4688;
+      opacity: 0;
+    }
+    20% {
+      border: solid 0.75rem #cc8ef5;
+      opacity: 1;
+    }
+    40% {
+      width: 1.4rem;
+      border: solid 0px #cc8ef5;
+      opacity: 0;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes likeAnimation {
+    0% {
+      transform: scale(0);
+    }
+    30% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1.2, 1.2);
+    }
+    60% {
+      transform: scale(1, 1) translate(0%, -10%);
+    }
+    65% {
+      transform: scale(1.1, 0.9) translate(0%, 5%);
+    }
+    70% {
+      transform: scale(0.95, 1.05) translate(0%, -3%);
+    }
+    80% {
+      transform: scale(1, 1) translate(0%, 0%);
+    }
+  }
+</style>
+```
+
+上記のコードはハートのコンポーネントの抜粋です。
+
+また、アクセシビリティに配慮するため `aria-label` や `aria-pressed` を指定しました。
+特に CSS アニメーションについては `aria-pressed` の値を参照することで動きを切り替えています。
 
 ### サイドバー
 
-レスポンシブ対応
+サイドに固定される部分はレスポンシブ対応を頑張りました。PC 表示では右側に、SP または、縦幅が小さい時は上部に表示されるようにしました。
+ブレイクポイントを横幅だけでなく、縦幅にも設けることでどんな端末で見ても柔軟に表示されることを目指しました。
 
 ![](/images/tsukuba-shinkan-web/responsive.gif)
+_様々な大きさで表示しているデモ、柔軟にレイアウトが切り替わっている - https://shinkan-web.zdk.tsukuba.ac.jp より引用_
+
+### その他
 
 ## むすびにかえて
