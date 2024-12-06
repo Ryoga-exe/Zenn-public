@@ -282,7 +282,7 @@ _ハートのアニメーション_
 ![](/images/tsukuba-shinkan-web/responsive.gif)
 _様々な大きさで表示しているデモ、柔軟にレイアウトが切り替わっている - https://shinkan-web.zdk.tsukuba.ac.jp より引用_
 
-[^3]: ちなみに、こちらも X (旧 Twitter) の挙動を参考にしています
+[^3]: こちらも X (旧 Twitter) の挙動を参考にしています
 
 ### その他
 
