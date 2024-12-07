@@ -2,8 +2,8 @@
 title: "筑波大学新歓 Web 2024 の舞台裏"
 emoji: "🌸"
 type: "tech"
-topics: ["web", "astro", "css", "筑波大学", "adventcalendar"]
-published: false
+topics: ["web", "astro", "筑波大学", "adventcalendar", "contest2024"]
+published: true
 ---
 
 この記事は、[mast Advent Calendar 2024](https://adventar.org/calendars/10425) 8 日目の記事です。
