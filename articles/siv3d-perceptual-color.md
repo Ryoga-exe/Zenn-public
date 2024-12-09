@@ -36,8 +36,8 @@ HSV は便利ですが、コントラストを均等に保つデザインを目�
 Oklab は、色を明度 (L)、赤緑成分 (a)、青黄成分 (b) の 3 つの要素で色を表します。この空間では**同じ明度 L の色は視覚的にコントラストが均一に感じられる**よう設計されています。
 Oklch は、Oklab の極座標版です。同じ L 軸を持ち、極座標系の C (彩度) と H (色相) を使用します。
 
-![Oklab 空間における直交座標 (Oklab) と極座標 (OKLCH)](https://evilmartians.com/static/2a08d3d2ca022b7d57d8ad75ac9459ba/c6a69/oklab-vs-oklch.webp)
-_Oklab 空間における直交座標 (Oklab) と極座標 (OKLCH) - https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl より引用_
+![Oklab 空間における直交座標 (Oklab) と極座標 (Oklch)](https://evilmartians.com/static/2a08d3d2ca022b7d57d8ad75ac9459ba/c6a69/oklab-vs-oklch.webp)
+_Oklab 空間における直交座標 (Oklab) と極座標 (Oklch) - https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl より引用_
 
 Oklab と Oklch 色空間は、2020 年に [Björn Ottosson](https://x.com/bjornornorn) により作成されました。[^1]
 割と最近できたものですが、CSS 仕様に追加されたり[^2]、Photoshop にグラデーション補完のために追加されたり[^3]など、すでに様々な場面で導入されています。
@@ -144,7 +144,7 @@ struct Oklch
 
 使用例
 
-![](/images/siv3d-perceptual-color/screenshot.png)
+![Oklch を Siv3D で使ってみた例](/images/siv3d-perceptual-color/screenshot.png)
 
 :::details コード（Main 関数のみ）
 
