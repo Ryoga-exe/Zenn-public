@@ -1,6 +1,6 @@
 ---
 title: "Siv3D で知覚的色空間を使う - Oklab と Oklch 色空間"
-emoji: "🌊"
+emoji: "🎨"
 type: "tech"
 topics: ["siv3d", "opensiv3d", "design"]
 published: false
