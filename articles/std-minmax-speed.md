@@ -33,7 +33,7 @@ auto [mn_it, mx_it] = std::minmax_element(arr.begin(), arr.end());
 
 さらに、この `std::minmax_element` のリファレンス [^1] を読んでみると、探索する長さを $N$ として $\Omicron \Bigl( \max \bigl( \lfloor \frac{3}{2} (N - 1) \rfloor, 0 \bigr) \Bigr )$ の比較を行うと書かれていることがわかります。
 
-素朴な実装では、ループの各ステップで `std::min` と `std::max` による比較により $\Omicron \bigl( 2 \times (N - 1) \bigr)$ かかるため、`std::minmax_element` では計算量に関するある工夫がされているようです。
+素朴な実装では、ループの各ステップで `std::min` と `std::max` による比較により $\Omicron \bigl( 2 \times (N - 1) \bigr)$ かかるため、`std::minmax_element` では計算量に関する何かしらの工夫がされているようです。
 
 ## `std::minmax_element` のアルゴリズム
 
