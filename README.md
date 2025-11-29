@@ -1,10 +1,8 @@
 # Zenn Contents
 
-<a href="https://github.com/Ryoga-exe/Zenn-public/blob/main/LICENSE">![LICENSE](https://img.shields.io/github/license/Ryoga-exe/Zenn-public)</a>
-<a href="https://zenn.dev/ryoga_exe">![Zenn](https://zenn.badge.nikaera.com/s/ryoga_exe/articles?style=plastic)</a>
-<a href="https://zenn.dev/ryoga_exe">![](https://zenn.badge.nikaera.com/s/ryoga_exe/likes?style=plastic)</a>
-<a href="https://zenn.dev/ryoga_exe">![](https://zenn.badge.nikaera.com/s/ryoga_exe/followers?style=plastic)</a>
-<a href="https://zenn.dev/ryoga_exe?tab=scraps">![](https://zenn.badge.nikaera.com/s/ryoga_exe/scraps?style=plastic)</a>
+[![LICENSE](https://img.shields.io/github/license/Ryoga-exe/Zenn-public?style=plastic)](https://github.com/Ryoga-exe/Zenn-public/blob/main/LICENSE)
+[![Articles](https://badgen.org/img/zenn/ryoga_exe/articles?style=plastic)](https://zenn.dev/ryoga_exe)
+[![Likes](https://badgen.org/img/zenn/ryoga_exe/likes?style=plastic)](https://zenn.dev/ryoga_exe)
 
 Repository for [my Zenn contents](https://zenn.dev/ryoga_exe).
 
