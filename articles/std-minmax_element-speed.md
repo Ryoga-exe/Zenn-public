@@ -108,3 +108,93 @@ minmax_element(ForwardIterator first, ForwardIterator last, Compare comp)
 現代のコンパイラは単純なループをかなり上手に自動ベクトル化します。
 `min` だけ、`max` だけを回すループは、SIMD 命令へ落ちやすいように思えます。メモリアクセス帯域がボトルネックになっている場合には「二回走査だけど速い」という結果になることもあるのではないでしょうか。
 対して `std::minmax_element` のペア処理は、分岐やデータ依存が増え、自動ベクトル化が入りにくいように思えます。
+
+## 実際にベンチマークを取ってみる
+
+実際に検証してみることにしました。
+
+:::details 検証に用いたコード
+
+```cpp
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <iostream>
+#include <random>
+#include <string_view>
+#include <vector>
+
+volatile int tmp;  // 結果を逃がすため
+
+template <class F>
+void bench(std::string_view name, F f, const std::vector<int>& arr, int iteration) {
+    using namespace std::chrono;
+
+    f(arr);  // warm up
+
+    const auto start = high_resolution_clock::now();
+    for (int i = 0; i < iteration; ++i) {
+        auto [mn, mx] = f(arr);
+        tmp ^= mn;
+        tmp ^= mx;
+    }
+    const auto end = high_resolution_clock::now();
+    const auto us = duration_cast<microseconds>(end - start).count();
+
+    std::cout << name << ": " << static_cast<double>(us) / iteration << " us / call\n";
+}
+
+// manual (1-pass)
+std::pair<int, int> minmax_manual(const std::vector<int>& arr) {
+    int mn = arr[0];
+    int mx = arr[0];
+    for (size_t i = 1; i < arr.size(); ++i) {
+        mn = std::min(mn, arr[i]);
+        mx = std::max(mx, arr[i]);
+    }
+    return {mn, mx};
+}
+
+// min_element + max_element (2-pass)
+std::pair<int, int> minmax_two_pass(const std::vector<int>& arr) {
+    auto mn = *std::min_element(arr.begin(), arr.end());
+    auto mx = *std::max_element(arr.begin(), arr.end());
+    return {mn, mx};
+}
+
+// minmax_element
+std::pair<int, int> minmax_std(const std::vector<int>& arr) {
+    auto [mn_it, mx_it] = std::minmax_element(arr.begin(), arr.end());
+    return {*mn_it, *mx_it};
+}
+
+int main() {
+    int n;
+    std::cin >> n;
+    const int Iteration = 200;
+
+    std::vector<int> arr(n);
+    std::random_device seed_gen;
+    std::uint32_t seed = seed_gen();
+    std::mt19937 engine(seed);
+    std::uniform_int_distribution<int> dist(-1'000'000, 1'000'000);
+
+    for (auto& x : arr) {
+        x = dist(engine);
+    }
+
+    bench("manual                    (1-pass)", minmax_manual, arr, Iteration);
+    bench("min_element + max_element (2-pass)", minmax_two_pass, arr, Iteration);
+    bench("minmax_element                    ", minmax_std, arr, Iteration);
+
+    return 0;
+}
+```
+
+:::
+
+| Column1 | Column2 | Column3 |
+| ------- | ------- | ------- |
+| Item1   | Item1   | Item1   |
+
+## まとめ
