@@ -12,8 +12,8 @@ published: false
 auto mn = arr[0];
 auto mx = arr[0];
 for (size_t i = 1; i < arr.size(); ++i) {
-    mn = std::min(mn, x);
-    mx = std::max(mx, x);
+    mn = std::min(mn, arr[i]);
+    mx = std::max(mx, arr[i]);
 }
 ```
 
@@ -31,20 +31,22 @@ auto mx = *std::max_element(arr.begin(), arr.end());
 auto [mn_it, mx_it] = std::minmax_element(arr.begin(), arr.end());
 ```
 
-さらに、この `std::minmax_element` のリファレンス [^1] を読んでみると、探索する長さを $N$ として $\Omicron \Bigl( \max \bigl( \lfloor \frac{3}{2} (N - 1) \rfloor, 0 \bigr) \Bigr )$ の比較を行うと書かれていることがわかります。
+さらに、この `std::minmax_element` のリファレンス [^1] を読んでみると、探索する範囲の要素数を $N$ として高々 $\left\lfloor \frac{3}{2}(N-1) \right\rfloor$ 回の比較を行うと書かれていることがわかります。
 
-素朴な実装では、ループの各ステップで `std::min` と `std::max` による比較により $\Omicron \bigl( 2 \times (N - 1) \bigr)$ かかるため、`std::minmax_element` では計算量に関する何かしらの工夫がされているようです。
+素朴な実装では、ループの各ステップで `std::min` と `std::max` による 2 回の比較を行うため、全体で $2(N-1)$ 回の比較が必要になります。そのため、`std::minmax_element` では比較回数を減らすための工夫がされていることがわかります。
+
+[^1]: https://cppreference.com/w/cpp/algorithm/minmax_element.html
 
 ## `std::minmax_element` のアルゴリズム
 
-`std::minmax_element` のほうが少ない比較回数を達成しているのはそのアルゴリズムにあります。
+`std::minmax_element` が比較回数を減らせているのは、そのアルゴリズムに由来します。
 要素をペアにして比較し、小さい方を用いて最小値を、大きい方を用いて最大値を更新するという手法を用います。
 
 ![std::minmax_element のアルゴリズムを図示したもの](/images/std-minmax-speed/minmax_element.png)
 
-これにより、25% 程度の計算量の削減が達成されるようです。
+これにより、25% 程度の比較回数の削減が達成されるようです。
 
-実装例としては [cpprefjp の minmax_element のページ](https://cpprefjp.github.io/reference/algorithm/minmax_element.html)にあるものが日本語のコメントも付いており参考になります。
+実装例としては、[cpprefjp の `minmax_element` のページ](https://cpprefjp.github.io/reference/algorithm/minmax_element.html)にあるコードが、日本語のコメント付きで参考になります。
 
 ```cpp
 template <class ForwardIterator, class Compare>
@@ -67,7 +69,7 @@ minmax_element(ForwardIterator first, ForwardIterator last, Compare comp)
       ForwardIterator prev = first;
 
       // 残りの要素が 1 個しか無かったら、.first と .second の両方の要素と比較して、
-      // 必要に応じで結果を更新後、ループを抜ける
+      // 必要に応じて結果を更新後、ループを抜ける
       if (++first == last) {
         if (comp(*prev, *result.first))
           result.first = prev;
@@ -99,12 +101,10 @@ minmax_element(ForwardIterator first, ForwardIterator last, Compare comp)
 
 ## 本当に std::minmax_element は速いのか
 
-計算量の面では、素朴な実装による $\Omicron (2N)$ 程度のものよりも、$\Omicron (1.5 N)$ 程度と速くなっていることは明白です。
+比較回数では素朴な実装よりも `std::minmax_element` のほうが定数倍で有利であることは明らかです。
 しかし、実装はかなり複雑そうに見えます。
 
 特に、比較関数として `int` 同士の `<` のような単純なものが渡された場合はどうでしょうか。
 現代のコンパイラは単純なループをかなり上手に自動ベクトル化します。
-`min` だけ、`max` だけを回すループは、SIMD の `min`/`max` 命令（例：AVX2）へ落ちやすく、メモリアクセス帯域が支配的な領域では「二回走査だけど速い」という結果になることもあるのではないでしょうか。
+`min` だけ、`max` だけを回すループは、SIMD 命令へ落ちやすいように思えます。メモリアクセス帯域がボトルネックになっている場合には「二回走査だけど速い」という結果になることもあるのではないでしょうか。
 対して `std::minmax_element` のペア処理は、分岐やデータ依存が増え、自動ベクトル化が入りにくいように思えます。
-
-[^1]: https://cppreference.com/w/cpp/algorithm/minmax_element.html
