@@ -183,9 +183,9 @@ int main() {
         x = dist(engine);
     }
 
-    bench("manual                    (1-pass)", minmax_manual, arr, Iteration);
-    bench("min_element + max_element (2-pass)", minmax_two_pass, arr, Iteration);
-    bench("minmax_element                    ", minmax_std, arr, Iteration);
+    bench("manual                   ", minmax_manual, arr, Iteration);
+    bench("min_element + max_element", minmax_two_pass, arr, Iteration);
+    bench("minmax_element           ", minmax_std, arr, Iteration);
 
     return 0;
 }
