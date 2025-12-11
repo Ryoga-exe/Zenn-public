@@ -3,7 +3,7 @@ title: "Siv3D で FeliCa リーダーを使う"
 emoji: "🪪"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["siv3d", "felica"]
-published: false
+published: true
 ---
 
 この記事は [Siv3D Advent Calendar 2025](https://qiita.com/advent-calendar/2025/siv3d) 9 日目の記事です。
