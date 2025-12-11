@@ -1,5 +1,5 @@
 ---
-title: "Siv3D で FeliCa リーダを使う"
+title: "Siv3D で FeliCa リーダーを使う"
 emoji: "🪪"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["siv3d", "felica"]
@@ -10,15 +10,15 @@ published: false
 
 ## はじめに
 
-今年の学園祭で展示したゲームで、FeliCa リーダを使ったユーザ管理・ログイン機構を実装しました。
-学生証や Suica カードをリーダにかざすだけでログインできる仕組みは、体験として想像以上にウケが良かったです。
+今年の学園祭で展示したゲームで、カードリーダーを使ったユーザ管理・ログイン機構を実装しました。
+学生証や Suica カードをリーダーにかざすだけでログインできる仕組みは、体験として想像以上にウケが良かったです。
 
-本記事では、Siv3D でカードリーダを使って FeliCa の IDm を取得する方法についてまとめます。
+そこで本記事では、Siv3D でカードリーダーを使って FeliCa の IDm を取得する方法についてまとめます。
 
 ## 環境
 
 今回使用した環境は Windows + Siv3D v0.6.16 です。
-また、リーダには PaSoRi RC-S300 を使いました。[^1]
+また、リーダーには PaSoRi RC-S300 を使いました。[^1]
 
 https://www.sony.co.jp/Products/felica/consumer/products/RC-S300.html
 
@@ -29,7 +29,7 @@ https://www.sony.co.jp/Products/felica/consumer/products/RC-S300.html
 ## 実装
 
 読み取りは PC/SC (WinSCard) を叩くことで行いました。
-WinSCard (`winscard.dll`) は Windows に入っているライブラリで、最低限カードリーダから情報を得るための機能が入っています。
+WinSCard (`winscard.dll`) は Windows に入っているライブラリで、カードリーダーから情報を取得するための最低限の API が提供されています。
 
 今回はこれを用いて `CardReaderWin` というクラスを作成し、Siv3D で使いやすい形式で実装しました。
 コードは非常に長いため、折りたたみの中に載せます。
@@ -214,15 +214,16 @@ void CardReaderWin::Read(CardReaderWin* self)
 		return;
 	}
 
-	// リーダ列挙
+	// リーダー列挙
 	DWORD mszLen = 0;
-	if (SCardListReaders(c.ctx, nullptr, nullptr, &mszLen) != SCARD_S_SUCCESS or mszLen <= 2)
+	if (SCardListReadersW(c.ctx, nullptr, nullptr, &mszLen) != SCARD_S_SUCCESS or mszLen <= 2)
 	{
 		self->m_ok = false;
 		self->m_running = false;
+		return;
 	}
 	std::vector<wchar_t> msz(mszLen);
-	if (SCardListReaders(c.ctx, nullptr, msz.data(), &mszLen) != SCARD_S_SUCCESS) {
+	if (SCardListReadersW(c.ctx, nullptr, msz.data(), &mszLen) != SCARD_S_SUCCESS) {
 		self->m_ok = false;
 		self->m_running = false;
 		return;
@@ -245,7 +246,7 @@ void CardReaderWin::Read(CardReaderWin* self)
 	while (self->m_running)
 	{
 		// 200ms タイムアウトで監視
-		if (SCardGetStatusChange(c.ctx, 200, &st, 1) != SCARD_S_SUCCESS)
+		if (SCardGetStatusChangeW(c.ctx, 200, &st, 1) != SCARD_S_SUCCESS)
 		{
 			continue;
 		}
@@ -259,7 +260,7 @@ void CardReaderWin::Read(CardReaderWin* self)
 		// 接続
 		PcscCard card;
 		DWORD proto{};
-		if (SCardConnect(c.ctx, readerW.c_str(), SCARD_SHARE_SHARED, SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1, &card.handle, &proto) != SCARD_S_SUCCESS)
+		if (SCardConnectW(c.ctx, readerW.c_str(), SCARD_SHARE_SHARED, SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1, &card.handle, &proto) != SCARD_S_SUCCESS)
 		{
 			continue;
 		}
@@ -304,11 +305,14 @@ https://github.com/Ryoga-exe/SivCardReader
 流れは以下のようになっています。
 
 - `SCardEstablishContext` で PC/SC を開始
-- `SCardListReaders` でリーダ名を列挙
-- `SCardGetStatusChange` で短いタイムアウトでポーリングしつつカードがかざされるのを監視
-- `SCardConnect` で PCI を選択
-- `SCardTransmit` で APDU `FF CA 00 00 00` を送信
+- `SCardListReadersW` でリーダー名を列挙
+- `SCardGetStatusChangeW` で短いタイムアウトでポーリングしつつ、在席を監視
+- `SCardConnectW` で T=0/T=1 を交渉
+- `SCardTransmit` に `proto` に応じて `SCARD_PCI_T0`/`SCARD_PCI_T1` を渡し、APDU `FF CA 00 00 00` を送信
+- `SW1 SW2 == 90 00` なら先頭 8 バイトが IDm
 - `SCardDisconnect` で切断
+
+なお、APDU 受信バッファは最大 258 バイト（データ 256 + SW1/SW2 の 2 バイト）を常に確保するようにしています。
 
 これを使った最小限のサンプルコードは以下のようになります。
 「カードがかざされたら IDm を取得し、表示する」という簡単な動作です。
@@ -343,3 +347,28 @@ void Main()
 	}
 }
 ```
+
+学園祭で展示したゲームでは、取得した IDm を API サーバーに送ってユーザーを引き当て、スコアや履歴をデータベースに記録する構成にしました。
+ゲームのログインや、ランキング集計がスムーズでした。
+
+体験面の小さな課題として、Windows ではカード着脱のたびにデバイス接続音が鳴ることがあります。
+展示環境では気になるので、「デバイス接続/切断」サウンドをオフにしておくと快適です。
+
+## 注意点
+
+今回の方法は、FeliCa (NFC-F) の IDm を識別子として扱うことを前提としています。
+ところが、マイナンバーカードのような ISO/IEC 14443 系（多くは Type B）のカードは、非選択状態で返す識別子が毎回変わる設計になっています。
+そのため、今回の実装の PC/SC の簡易コマンド (`FF CA 00 00 00`) で取れる値は固定の ID ではないため、使えません。[^2]
+展示や運用で、きちんと識別したい場合は、FeliCa のみを対象とする・簡易的なフィルタをかけるなど対策が必要そうです。
+
+また、 今回は学園祭というライトな場である・そもそもめちゃくちゃヤバイデータを記録しているわけではなかったため、このような運用で問題はありませんでしたが、IDm は認証の秘密ではない点に注意が必要です。
+一般に IDm はカード固有の識別子として扱われますが、読み取りそのものに秘密性はなく、エミュレーション等による偽装の余地があります。
+つまり、IDm をそのまま「本人確認」の根拠に使うのは危険なようです。
+
+[^2]: 実際に、東工大の学生証ではうまく識別できませんでした。詳しくはよくわからなかったのですが、どうやら Visa カードがベースになっているとかなんとかで少々複雑なようです。
+
+## まとめ
+
+FeliCa の IDm を使ったライトなタッチでログイン体験は、Siv3D + PC/SC だけで簡単に実装することができました。
+
+いくつか注意点に気をつければ、文化祭や学園祭でのゲーム展示などで活用できそうに思えます。
