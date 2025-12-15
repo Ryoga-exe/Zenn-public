@@ -6,6 +6,9 @@ topics: ["game", "serial", "controller", "siv3d"]
 published: false
 ---
 
+> この記事は、[mast Advent Calendar 2025](https://adventar.org/calendars/11736) 15 日目の記事です。
+> 14 日目の記事は [🍏](https://x.com/ao_ringo_uni) さんの「[Cloudflare Email Routing で予約完了メールから予定を自動作成する](https://zenn.dev/ao_ringo_uni/articles/046e54001c7562)」でした。
+
 ## はじめに
 
 [CHUNITHM（チュウニズム）](https://chunithm.sega.jp/)はセガにより開発されているアーケード音楽ゲームです。
@@ -20,7 +23,50 @@ published: false
 ヤフオクの海を適当に彷徨っていたらたまたま既視感のあるスライダーが漂流していました。
 15,000 円と微妙に手が届いてしまう値段だったので、勢いで購入してしまいました。
 
-https://x.com/Ryoga_exe/status/1806307725133136263
+![家に届いた箱、本当にでかすぎる](/images/chunithm-ground-slider/slider.jpg)
+_家に届いた箱、本当にでかすぎる_
 
 かなりデカい箱で届きました。1 日で私の部屋が埋まってしまいました。
-また、大部分が金属でできており、かなり重量があります。
+また、大部分が金属でできており、かなり重量があります。持ち上げると腰がやられます。
+
+https://x.com/Ryoga_exe/status/1806307725133136263
+
+箱から取り出した様子。
+おそらく古い筐体から取り出したものだと思われます。多少汚れが目立ちます。
+
+## PC に接続してみる
+
+スライダーからは謎のコネクタが 2 本生えています。
+
+![スライダーから生えている謎の 2 本のコネクタ](/images/chunithm-ground-slider/connector.jpg)
+_スライダーから生えている 2 本の謎のコネクタ_
+
+これが何なのか、謎です。謎なのでインターネットを漁ってみることにしました。
+すると、[Chunithm Ground Slider | Rhythm Cons Wiki](https://rhythm-cons.wiki/controllers/chunithm/chunithm-ground-slider/) という謎の Wiki を見つけました。
+ここに、コネクタについて詳細な説明があります。
+
+どうやら片方は RS-232C（D-Sub9） 相当、もう片方は 12V 給電なようでした。[^2]
+TTLシリアルではないようです。USB-TTL ではなく USB–RS-232C 変換器を使います。
+
+RS-232C 側は、USB–RS-232 変換アダプタを用いて PC と接続することができます。
+DB9 ブレークアウト基板とかいうものを買い、コネクタのピンから線を伸ばすのが確実ですが、時間がなかったので古いヤマハのルーターを分解し、ハンダ吸い取り機などを活用することで頑張って D-Sub9 コネクタ部分を取得しました。（バカすぎる）
+
+![古いヤマハのルーターを分解してコネクタ部分を取り出している様子](/images/chunithm-ground-slider/disassemble-connector.jpg)
+_古いヤマハのルーターを分解してコネクタ部分を取り出している様子_
+
+DB9 のオスのピンが見えている側を正面から見た図は以下のようになっています。
+
+```
+1  2  3  4  5
+ 6  7  8  9
+```
+
+図はオス側を正面から見たときの番号です。裏面 / メス側だと鏡写しになるので注意してください。
+
+このうち、2=RXD, 3=TXD, 5=GND を先程の Wiki の情報を参考に配線します。
+スライダー側から生えているソケットは謎ですが、いろいろと試してみると、PC 用のケースファン 3 ピンのものがピッタリだったのでそれに繋ぐことにしました。
+
+![配線したもの](/images/chunithm-ground-slider/connector-make.jpg)
+_配線したもの_
+
+[^2]: 先程の図において、オスのコネクタが 12V 給電、メスのコネクタが RS-232C です。
