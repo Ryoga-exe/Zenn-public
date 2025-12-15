@@ -6,8 +6,10 @@ topics: ["game", "serial", "controller"]
 published: true
 ---
 
-> この記事は、[mast Advent Calendar 2025](https://adventar.org/calendars/11736) 15 日目の記事です。
+> この記事は、[mast Advent Calendar 2025](https://adventar.org/calendars/11736) 15 日目の記事です。[^0]
 > 14 日目の記事は [🍏](https://x.com/ao_ringo_uni) さんの「[Cloudflare Email Routing で予約完了メールから予定を自動作成する](https://zenn.dev/ao_ringo_uni/articles/046e54001c7562)」でした。
+
+[^0]: 私は情報科学類生で情報メディア創成学類生でも何でも無いです。余談ですが今日から数日嘘 mast が続くようです。
 
 ## はじめに
 
