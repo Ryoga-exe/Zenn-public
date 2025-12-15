@@ -3,7 +3,7 @@ title: "CHUNITHM のスライダーを PC で使う"
 emoji: "🕹️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["game", "serial", "controller"]
-published: false
+published: true
 ---
 
 > この記事は、[mast Advent Calendar 2025](https://adventar.org/calendars/11736) 15 日目の記事です。
