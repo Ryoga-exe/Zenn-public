@@ -2,7 +2,7 @@
 title: "CHUNITHM のスライダーを PC で使う"
 emoji: "🕹️"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["game", "serial", "controller", "siv3d"]
+topics: ["game", "serial", "controller"]
 published: false
 ---
 
@@ -42,13 +42,13 @@ https://x.com/Ryoga_exe/status/1806307725133136263
 _スライダーから生えている 2 本の謎のコネクタ_
 
 これが何なのか、謎です。謎なのでインターネットを漁ってみることにしました。
-すると、[Chunithm Ground Slider | Rhythm Cons Wiki](https://rhythm-cons.wiki/controllers/chunithm/chunithm-ground-slider/) という謎の Wiki を見つけました。
+すると、[Chunithm Ground Slider | Rhythm Cons Wiki](https://rhythm-cons.wiki/controllers/chunithm/chunithm-ground-slider/) という謎の海外の Wiki を見つけました。
 ここに、コネクタについて詳細な説明があります。
 
 どうやら片方は RS-232C（D-Sub9） 相当、もう片方は 12V 給電なようでした。[^2]
-TTLシリアルではないようです。USB-TTL ではなく USB–RS-232C 変換器を使います。
+RS-232C（±電圧）なので USB-TTL では動かないようです。
 
-RS-232C 側は、USB–RS-232 変換アダプタを用いて PC と接続することができます。
+RS-232C 側は、USB–RS-232 変換アダプタなどを用いることで PC と接続することができます。
 DB9 ブレークアウト基板とかいうものを買い、コネクタのピンから線を伸ばすのが確実ですが、時間がなかったので古いヤマハのルーターを分解し、ハンダ吸い取り機などを活用することで頑張って D-Sub9 コネクタ部分を取得しました。（バカすぎる）
 
 ![古いヤマハのルーターを分解してコネクタ部分を取り出している様子](/images/chunithm-ground-slider/disassemble-connector.jpg)
@@ -69,4 +69,68 @@ DB9 のオスのピンが見えている側を正面から見た図は以下の�
 ![配線したもの](/images/chunithm-ground-slider/connector-make.jpg)
 _配線したもの_
 
+あとは USB 変換アダプタを用いて PC に接続しました。
+
+12V の給電は、2A の電源を使いました。
+もちろん謎のコネクタなんて持っていないので、適当に銅線をコネクタに差し込み、ビニルテープでぐるぐる巻きにすることで接続しています。[^3]
+
 [^2]: 先程の図において、オスのコネクタが 12V 給電、メスのコネクタが RS-232C です。
+
+[^3]: どうやら調べてみると、給電用のコネクタは YLP-03V というコネクタ、もう片方は SMR-04V というコネクタだそうです。
+
+## スライダーと通信してみる
+
+Linux だと `/dev/ttyUSB*` に、Windows だとデバイスマネージャからシリアルポートにいます。
+これといい感じにおしゃべりすることでスライダーを使うことができそうです。
+
+当初は、オシロスコープやロジアナを使って頑張って通信を解析していましたが、普通に既に解析されているそうです。
+
+自分で解析するのは骨が折れるので、大人しく先人の知恵を借りましょう。
+プロトコルは、[初音ミク Project DIVA Arcade](https://miku.sega.jp/arcade/) のタッチスライダーと同じだそうで、[謎の Gist](https://gist.github.com/dogtopus/b61992cfc383434deac5fab11a458597) や、[こちらのサイト](https://ryun.halfmoon.jp/touchslider/slider_protocol.html)にまとめられています。
+
+詳細なプロトコルはこれらのサイトに委ねるとして、いくつか主要なものを紹介します。
+
+### プロトコル
+
+パケットは、`SYNC(0xFF), CMD, LEN, PAYLOAD..., CHK` の順で構成されます。
+`CMD` はペイロードの種別、`LEN` はペイロードのバイト数（ヘッダとチェックサムは含まない）で、`CHK` は二の補数のチェックサムです。
+チェックサムは、パケットのバイトの総和が `0x00 (mod 256)` となるような数です。
+
+主要なコマンドは以下の通りです。
+
+- RESET (`0x10`)
+  - `0xFF 0x10 0x00 0xF1` が正常な応答です。
+- GetHWInfo (`0xF0`)
+  - 応答は `LEN = 0x12` 固定です。
+  - `model(8), device_class, chip_pn(5), ..., fw_ver` のようなパケットが返ってきます。
+- StartInput (`0x03`) / StopInput (`0x04`)
+  - StartInput コマンドにより、スライダーから約 12ms 間隔でタッチセンサの値が飛んでくるようになります。[^4]
+- InputReport (`0x01`)
+  - `LEN = 0x20` （32バイト）のタッチセンサの情報が返ってきます。
+  - 各センサの値は強さに応じて `0x00` から `0xFE` を取り得ます。何もタッチしていないと値は `0x00` になります。
+- LedReport (`0x02`)
+  - `LEN = 0x5E` の`PAYLOAD` をスライダーに送ります。`PAYLOAD` は明るさ `1 + [B,R,G] * 31` のような形式です。
+
+さらに調べてみると、これを Python で実装したリポジトリが見つかりました。
+
+https://github.com/CrazyRedMachine/ChunithmIO
+
+`slidertest/` ディレクトリにあるファイルを実行すると、スライダーを光らせたり、タッチセンサの値を取ったりすることができます。
+
+[^4]: フレームレート換算で 83.3 FPS です。最新の CHUNITHM では 120FPS に対応した機種もあるため、最新機種のスライダーでは間隔が短くなっているのでしょうか。
+
+## ライブラリを書く
+
+このプロトコルを C++ で実装しました。フレームワークとして Siv3D を使っています。
+
+https://github.com/Ryoga-exe/SivGroundSlider
+
+`SivGroundSlider/` ディレクトリに Siv3D で使う前提のヘッダオンリーなライブラリとして実装しています。
+実行すると、以下の動画のようになります。
+
+https://x.com/Ryoga_exe/status/1983200762026176776
+
+## まとめ
+
+ヤフオクで勢いで購入してしまった CHUNITHM のスライダーでしたが、どうにか自分の PC で自由に使えるようにできました。
+やはり、奇妙なハードウェアを触るのは面白いです。
