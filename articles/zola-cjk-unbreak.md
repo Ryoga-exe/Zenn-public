@@ -37,8 +37,8 @@ Zola 自体にはかなり満足しているのですが、日本語の Markdown
 
 ## 解決策
 
-Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。
-今回は、そのテンプレート側で `regex_replace` を使って CJK 文字間の改行を消す方針で対処しました。
+Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Zola ではその Tera にあるフィルターに加えていくつかのフィルターが追加されています。
+今回は、そのなかの [`regex_replace`](https://www.getzola.org/documentation/templates/overview/#regex-replace) を使って CJK 文字間の改行を消す方針で対処しました。
 具体的には以下のようなマクロを作成しました。
 
 ```jinja2:templates/macros/cjk.html
