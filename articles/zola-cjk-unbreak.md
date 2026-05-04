@@ -37,7 +37,7 @@ Zola 自体にはかなり満足しているのですが、日本語の Markdown
 
 ## 解決策
 
-Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Zola ではその Tera にあるフィルターに加えていくつかのフィルターが追加されています。
+Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Zola では Tera 標準のフィルターに加え、Zola 独自のフィルターがいくつか追加されています。
 今回は、その中の [`regex_replace`](https://www.getzola.org/documentation/templates/overview/#regex-replace) を使って CJK 文字間の改行を消す方針で対処しました。
 具体的には以下のようなマクロを作成しました。
 
@@ -65,6 +65,8 @@ Zola はテンプレートエンジンとして [Tera](https://keats.github.io/t
 
 マクロで使用している正規表現は、前述した Typst の `cjk-unbreak` のコードを参考にしました。
 
+末尾の `| safe` は、`regex_replace` を通すと HTML が再エスケープされて `<p>` が `&lt;p&gt;` のように出力されてしまうため、それを元に戻すために付けています。`page.content` のように既に安全だと分かっている HTML を扱う場合に必要です。
+
 ## 注意点
 
 この方法は Markdown の AST ではなく、生成済み HTML 文字列に対する後処理にすぎません。
@@ -87,7 +89,7 @@ Zola はテンプレートエンジンとして [Tera](https://keats.github.io/t
 
 少なくとも現在の Zola では、設定だけで Markdown の soft line break の扱いを差し替えることは難しそうです。
 
-Zola 本体の issue には Markdown render hooks の Tracking issue があり、その中で `pulldown_cmark::html::push_html` の HTML 出力をカスタマイズできるか、という話題も挙がっています。（2026 年 5 月 4 日現在）
+Zola 本体には Markdown render hooks の tracking issue が立っており、その中で `pulldown_cmark::html::push_html` の HTML 出力をカスタマイズできるか、という話題も挙がっています。（2026 年 5 月 4 日現在）
 
 https://github.com/getzola/zola/issues/2307
 
