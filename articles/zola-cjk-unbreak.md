@@ -6,14 +6,14 @@ topics: ["zola", "tera", "markdown"]
 published: false
 ---
 
-[Zola](https://www.getzola.org/) は高速にビルドができることが特徴の SSG です。
+[Zola](https://www.getzola.org/) はビルドが高速なことを特徴とする SSG です。
 私は個人的なブログを Zola で構築しており、それをしばらく使い続けています。
 
 Zola 自体にはかなり満足しているのですが、日本語の Markdown を書いているときに少し気になることがありました。
 
 ## 改行時に不自然なスペースが入ってしまう
 
-私は、Markdown を書く際に句点の後に改行をしがちなのですが、これのせいで表示上は不自然な半角スペースが入ったように見えてしまいます。
+私は、Markdown を書く際に句点の後に改行しがちなのですが、これのせいで表示上は不自然な半角スペースが入ったように見えてしまいます。
 
 例えば
 
@@ -33,11 +33,11 @@ Zola 自体にはかなり満足しているのですが、日本語の Markdown
 
 英語であれば単語間にスペースが入るのは自然ですが、日本語では文中に突然半角スペースが入ると少し目立ちます。
 
-似たような問題に対して、Typst には [cjk-unbreak](https://typst.app/universe/package/cjk-unbreak/) というパッケージが存在し、これを解決できます。今回は、これと似たようなことを Zola でも行いたいわけです。
+同様の問題に対して、Typst には [cjk-unbreak](https://typst.app/universe/package/cjk-unbreak/) というパッケージが存在し、これを解決できます。今回は、これと似たようなことを Zola でも実現したいわけです。
 
 ## 解決策
 
-Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Zola では Tera 標準のフィルターに加え、Zola 独自のフィルターがいくつか追加されています。
+Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Tera 標準のフィルターに加え、独自のフィルターがいくつか追加されています。
 今回は、その中の [`regex_replace`](https://www.getzola.org/documentation/templates/overview/#regex-replace) を使って CJK 文字間の改行を消す方針で対処しました。
 具体的には以下のようなマクロを作成しました。
 
@@ -81,7 +81,7 @@ Zola はテンプレートエンジンとして [Tera](https://keats.github.io/t
 
 のようなケースでは、HTML 化後にタグが挟まるため、単純な正規表現では期待通りに改行を消せません。
 
-厳密には Markdown の AST レベルで処理するのが理想ですが、今回の私のブログではこのようなケースは起こらなそうだったため許容としています。
+厳密には Markdown の AST レベルで処理するのが理想ですが、今回の私のブログではこのようなケースは起こらなさそうだったため許容しています。
 
 ## 余談
 
@@ -89,7 +89,7 @@ Zola はテンプレートエンジンとして [Tera](https://keats.github.io/t
 
 少なくとも現在の Zola では、設定だけで Markdown の soft line break の扱いを差し替えることは難しそうです。
 
-Zola 本体には Markdown render hooks の tracking issue が立っており、その中で `pulldown_cmark::html::push_html` の HTML 出力をカスタマイズできるか、という話題も挙がっています。（2026 年 5 月 4 日現在）
+Zola 本体には Markdown render hooks の tracking issue が立っており、その中で `pulldown_cmark::html::push_html` の HTML 出力をカスタマイズできるか、という話題が挙がっています。（2026 年 5 月 4 日現在）
 
 https://github.com/getzola/zola/issues/2307
 
@@ -97,14 +97,14 @@ https://github.com/getzola/zola/issues/2307
 
 https://github.com/getzola/zola/issues/3070
 
-そのため現状では、Zola 本体の設定で解決するというより、今回のようにテンプレート側で `page.content` を後処理するのが手軽そうです。
+そのため現状では、Zola 本体の対応を待つのではなく、今回のようにテンプレート側で `page.content` を後処理するのが手軽そうです。
 
 ### これは Zola 特有の問題ではない
 
 この問題は Zola 特有のものではありません。
 
 Markdown / CommonMark では、段落内の普通の改行は soft line break として扱われます。
-HTML 上では改行も空白文字の一種なので、ブラウザ上では改行位置にスペースが入ったように見えます。
+HTML / CSS では改行を含む連続した空白が単一の空白に畳まれて表示されるため、ブラウザ上では改行位置にスペースが入ったように見えます。
 
 CommonMark の議論でも、soft line break をスペースとして扱うと、中国語など CJK の文章で不自然な空白が出るという問題が指摘されています。
 
@@ -129,6 +129,6 @@ https://github.com/lotabout/hexo-filter-fix-cjk-spacing
 今回は Zola の `regex_replace` フィルターを使って、CJK 文字間の改行を削除するマクロを作り対処しました。
 
 生成される HTML に対する後処理なので完璧ではありませんが、私のブログでは十分実用的でした。
-同じように Zola で日本語ブログを書いていて、改行位置に半角スペースが生えるのが気になる場合は、このようなマクロを挟むと改善できるかもしれません。
+同じように Zola で日本語ブログを書いていて、改行位置に半角スペースが入るのが気になる場合は、このようなマクロを通すと改善できるかもしれません。
 
 また、今後の Zola のアップデートにより、Markdown のレンダリング段階でもう少し本質的に処理できるようになるかもしれません。
