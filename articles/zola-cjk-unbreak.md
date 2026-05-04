@@ -6,7 +6,7 @@ topics: ["zola", "tera", "markdown"]
 published: false
 ---
 
-Zola は高速にビルドができることが特徴の SSG です。
+[Zola](https://www.getzola.org/) は高速にビルドができることが特徴の SSG です。
 私は個人的なブログを Zola で構築しており、それをしばらく使い続けています。
 
 Zola 自体にはかなり満足しているのですが、日本語の Markdown を書いているときに少し気になることがありました。
