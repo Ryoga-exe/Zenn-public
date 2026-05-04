@@ -38,7 +38,7 @@ Zola 自体にはかなり満足しているのですが、日本語の Markdown
 ## 解決策
 
 Zola はテンプレートエンジンとして [Tera](https://keats.github.io/tera/) を使用しています。さらに、Zola ではその Tera にあるフィルターに加えていくつかのフィルターが追加されています。
-今回は、そのなかの [`regex_replace`](https://www.getzola.org/documentation/templates/overview/#regex-replace) を使って CJK 文字間の改行を消す方針で対処しました。
+今回は、その中の [`regex_replace`](https://www.getzola.org/documentation/templates/overview/#regex-replace) を使って CJK 文字間の改行を消す方針で対処しました。
 具体的には以下のようなマクロを作成しました。
 
 ```jinja2:templates/macros/cjk.html
@@ -85,7 +85,7 @@ Zola はテンプレートエンジンとして [Tera](https://keats.github.io/t
 
 ### Zola の制約
 
-少なくとも現在の Zola では、設定だけで Markdown の Soft line break の扱いを差し替えることは難しそうです。
+少なくとも現在の Zola では、設定だけで Markdown の soft line break の扱いを差し替えることは難しそうです。
 
 Zola 本体の issue には Markdown render hooks の Tracking issue があり、その中で `pulldown_cmark::html::push_html` の HTML 出力をカスタマイズできるか、という話題も挙がっています。（2026 年 5 月 4 日現在）
 
@@ -101,10 +101,10 @@ https://github.com/getzola/zola/issues/3070
 
 この問題は Zola 特有のものではありません。
 
-Markdown / CommonMark では、段落内の普通の改行は Soft line break として扱われます。
+Markdown / CommonMark では、段落内の普通の改行は soft line break として扱われます。
 HTML 上では改行も空白文字の一種なので、ブラウザ上では改行位置にスペースが入ったように見えます。
 
-CommonMark の議論でも、Soft line break をスペースとして扱うと、中国語など CJK の文章で不自然な空白が出るという問題が指摘されています。
+CommonMark の議論でも、soft line break をスペースとして扱うと、中国語など CJK の文章で不自然な空白が出るという問題が指摘されています。
 
 https://talk.commonmark.org/t/soft-line-breaks-should-not-introduce-spaces/285
 
@@ -124,7 +124,7 @@ https://github.com/lotabout/hexo-filter-fix-cjk-spacing
 
 ## まとめ
 
-今回は Tera の `regex_replace` を使って、CJK 文字間の改行を削除するマクロを作り対処しました。
+今回は Zola の `regex_replace` フィルターを使って、CJK 文字間の改行を削除するマクロを作り対処しました。
 
 生成される HTML に対する後処理なので完璧ではありませんが、私のブログでは十分実用的でした。
 同じように Zola で日本語ブログを書いていて、改行位置に半角スペースが生えるのが気になる場合は、このようなマクロを挟むと改善できるかもしれません。
